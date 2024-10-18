@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文字彙學習</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .word-input {
+            margin-bottom: 10px;
+        }
+
+        .word-input input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .results p {
+            font-size: 16px;
+        }
+
+        .test-container {
+            margin-top: 20px;
+        }
+
+        .test-options button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .test-options button:hover {
+            background-color: #0056b3;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>英文字彙學習</h1>
+
+        <!-- 單字輸入區 -->
+        <div class="word-input">
+            <input type="text" id="word" placeholder="輸入英文單字...">
+            <button onclick="getWordDetails()">提交單字</button>
+        </div>
+
+        <!-- 回應單字翻譯與詞性 -->
+        <div class="results">
+            <p id="translation"></p>
+            <p id="partOfSpeech"></p>
+        </div>
+
+        <!-- 測驗區 -->
+        <div class="test-container" id="test-container" style="display: none;">
+            <h2>選擇正確的意思</h2>
+            <div class="test-options" id="test-options">
+                <!-- 選擇題選項 -->
+            </div>
+            <div class="feedback" id="feedback"></div>
+        </div>
+    </div>
+
+    <script>
+        // 模擬API回應
+        const dictionaryAPI = {
+            "hello": { "translation": "哈囉", "partOfSpeech": "感嘆詞", "options": ["再見", "哈囉", "謝謝", "請"] },
+            "apple": { "translation": "蘋果", "partOfSpeech": "名詞", "options": ["香蕉", "蘋果", "葡萄", "橘子"] }
+        };
+
+        function getWordDetails() {
+            const word = document.getElementById("word").value.toLowerCase();
+            if (dictionaryAPI[word]) {
+                document.getElementById("translation").innerText = "翻譯: " + dictionaryAPI[word].translation;
+                document.getElementById("partOfSpeech").innerText = "詞性: " + dictionaryAPI[word].partOfSpeech;
+                loadTestOptions(word);
+            } else {
+                document.getElementById("translation").innerText = "抱歉，未找到該單字的翻譯。";
+                document.getElementById("partOfSpeech").innerText = "";
+            }
+        }
+
+        function loadTestOptions(word) {
+            const options = dictionaryAPI[word].options;
+            const testOptionsDiv = document.getElementById("test-options");
+            testOptionsDiv.innerHTML = ""; // 清除之前的選項
+
+            options.forEach(option => {
+                const button = document.createElement("button");
+                button.innerText = option;
+                button.onclick = function() { checkAnswer(option, word); };
+                testOptionsDiv.appendChild(button);
+            });
+
+            document.getElementById("test-container").style.display = "block";
+        }
+
+        function checkAnswer(selectedOption, word) {
+            const correctAnswer = dictionaryAPI[word].translation;
+            const feedbackDiv = document.getElementById("feedback");
+
+            if (selectedOption === correctAnswer) {
+                feedbackDiv.innerText = "正確!";
+                feedbackDiv.style.color = "green";
+            } else {
+                feedbackDiv.innerText = "錯誤，正確答案是: " + correctAnswer;
+                feedbackDiv.style.color = "red";
+            }
+        }
+    </script>
+
+</body>
+</html>
