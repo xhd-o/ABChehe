@@ -49,23 +49,6 @@
         .word-input button:hover {
             background-color: #0056b3;
         }
-
-        .word-list {
-            margin-top: 20px;
-        }
-
-        .word-list ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .word-list li {
-            background: #f9f9f9;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
@@ -85,26 +68,11 @@
             <button onclick="addWord()">新增單字</button>
         </div>
 
-        <div class="word-list">
-            <h2>單字列表</h2>
-            <ul id="word-list"></ul>
-        </div>
     </div>
 
     <script>
         // 初始化單字庫
         let wordList = JSON.parse(localStorage.getItem('wordList')) || [];
-
-        // 顯示現有的單字庫
-        function displayWords() {
-            const wordListElement = document.getElementById('word-list');
-            wordListElement.innerHTML = '';
-            wordList.forEach((word, index) => {
-                const li = document.createElement('li');
-                li.innerText = `${word.english} - ${word.chinese} (${word.partOfSpeech})`;
-                wordListElement.appendChild(li);
-            });
-        }
 
         // 新增單字到單字庫
         function addWord() {
@@ -121,7 +89,6 @@
 
                 wordList.push(newWord);
                 localStorage.setItem('wordList', JSON.stringify(wordList));
-                displayWords();
 
                 // 清除輸入框
                 document.getElementById('english-word').value = '';
@@ -131,8 +98,6 @@
             }
         }
 
-        // 初始顯示
-        displayWords();
     </script>
 
 </body>
