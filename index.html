@@ -3,61 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英文字彙學習</title>
+    <title>個人單字庫</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 20px;
         }
 
         .container {
+            max-width: 600px;
+            margin: 0 auto;
             background: #fff;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 400px;
         }
 
         h1 {
             text-align: center;
         }
 
-        .word-input {
-            margin-bottom: 10px;
-        }
-
-        .word-input input {
-            width: 100%;
+        .word-input input, .word-input select {
+            width: calc(33.3% - 10px);
             padding: 10px;
+            margin: 5px 5px;
             font-size: 16px;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
 
-        .results {
-            margin-top: 20px;
-        }
-
-        .results p {
-            font-size: 16px;
-        }
-
-        .test-container {
-            margin-top: 20px;
-        }
-
-        .test-options button {
+        .word-input button {
             display: block;
             width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
+            margin-top: 10px;
             font-size: 16px;
             background-color: #007bff;
             color: white;
@@ -66,120 +46,93 @@
             cursor: pointer;
         }
 
-        .test-options button:hover {
+        .word-input button:hover {
             background-color: #0056b3;
         }
 
-        .feedback {
+        .word-list {
             margin-top: 20px;
-            font-size: 18px;
-            text-align: center;
         }
 
+        .word-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .word-list li {
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>英文字彙學習</h1>
+        <h1>個人單字庫</h1>
 
-        <!-- 單字輸入區 -->
         <div class="word-input">
-            <input type="text" id="word" placeholder="輸入英文單字...">
-            <button onclick="getWordDetails()">提交單字</button>
+            <input type="text" id="english-word" placeholder="輸入英文單字" required>
+            <input type="text" id="chinese-translation" placeholder="輸入中文翻譯" required>
+            <select id="part-of-speech">
+                <option value="noun">名詞</option>
+                <option value="verb">動詞</option>
+                <option value="adjective">形容詞</option>
+                <option value="adverb">副詞</option>
+            </select>
+            <button onclick="addWord()">新增單字</button>
         </div>
 
-        <!-- 回應單字翻譯與詞性 -->
-        <div class="results">
-            <p id="translation"></p>
-            <p id="partOfSpeech"></p>
-        </div>
-
-        <!-- 測驗區 -->
-        <div class="test-container" id="test-container" style="display: none;">
-            <h2>選擇正確的意思</h2>
-            <div class="test-options" id="test-options">
-                <!-- 選擇題選項 -->
-            </div>
-            <div class="feedback" id="feedback"></div>
+        <div class="word-list">
+            <h2>單字列表</h2>
+            <ul id="word-list"></ul>
         </div>
     </div>
 
     <script>
-        function getWordDetails() {
-    const word = document.getElementById("word").value.toLowerCase();
-    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`;
+        // 初始化單字庫
+        let wordList = JSON.parse(localStorage.getItem('wordList')) || [];
 
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Word not found");
+        // 顯示現有的單字庫
+        function displayWords() {
+            const wordListElement = document.getElementById('word-list');
+            wordListElement.innerHTML = '';
+            wordList.forEach((word, index) => {
+                const li = document.createElement('li');
+                li.innerText = `${word.english} - ${word.chinese} (${word.partOfSpeech})`;
+                wordListElement.appendChild(li);
+            });
+        }
+
+        // 新增單字到單字庫
+        function addWord() {
+            const englishWord = document.getElementById('english-word').value;
+            const chineseTranslation = document.getElementById('chinese-translation').value;
+            const partOfSpeech = document.getElementById('part-of-speech').value;
+
+            if (englishWord && chineseTranslation) {
+                const newWord = {
+                    english: englishWord,
+                    chinese: chineseTranslation,
+                    partOfSpeech: partOfSpeech
+                };
+
+                wordList.push(newWord);
+                localStorage.setItem('wordList', JSON.stringify(wordList));
+                displayWords();
+
+                // 清除輸入框
+                document.getElementById('english-word').value = '';
+                document.getElementById('chinese-translation').value = '';
+            } else {
+                alert("請輸入完整的單字和翻譯！");
             }
-            return response.json();
-        })
-        .then(data => {
-            // 顯示翻譯和詞性
-            const wordData = data[0];
-            const meanings = wordData.meanings;
-            const definition = meanings[0].definitions[0].definition;
-            const partOfSpeech = meanings[0].partOfSpeech;
+        }
 
-            document.getElementById("translation").innerText = "定義: " + definition;
-            document.getElementById("partOfSpeech").innerText = "詞性: " + partOfSpeech;
-
-            loadTestOptions(word, definition); // 更新測驗選項
-        })
-        .catch(error => {
-            document.getElementById("translation").innerText = "抱歉，未找到該單字的翻譯。";
-            document.getElementById("partOfSpeech").innerText = "";
-        });
-}
-
-function loadTestOptions(word, correctDefinition) {
-    const testOptionsDiv = document.getElementById("test-options");
-    testOptionsDiv.innerHTML = ""; // 清除之前的選項
-
-    const options = generateTestOptions(correctDefinition); // 生成選擇題選項
-    options.forEach(option => {
-        const button = document.createElement("button");
-        button.innerText = option;
-        button.onclick = function() { checkAnswer(option, correctDefinition); };
-        testOptionsDiv.appendChild(button);
-    });
-
-    document.getElementById("test-container").style.display = "block";
-}
-
-function generateTestOptions(correctDefinition) {
-    // 模擬生成其他隨機選項，這裡應該整合真實的隨機選項生成邏輯
-    const fakeOptions = [
-        "隨便的錯誤答案1", 
-        "隨便的錯誤答案2", 
-        "隨便的錯誤答案3"
-    ];
-    const options = [correctDefinition, ...fakeOptions];
-    return shuffleArray(options); // 隨機打亂選項
-}
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-function checkAnswer(selectedOption, correctDefinition) {
-    const feedbackDiv = document.getElementById("feedback");
-
-    if (selectedOption === correctDefinition) {
-        feedbackDiv.innerText = "正確!";
-        feedbackDiv.style.color = "green";
-    } else {
-        feedbackDiv.innerText = "錯誤，正確答案是: " + correctDefinition;
-        feedbackDiv.style.color = "red";
-    }
-}
+        // 初始顯示
+        displayWords();
     </script>
 
 </body>
