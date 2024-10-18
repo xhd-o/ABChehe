@@ -106,51 +106,80 @@
     </div>
 
     <script>
-        // 模擬API回應
-        const dictionaryAPI = {
-            "hello": { "translation": "哈囉", "partOfSpeech": "感嘆詞", "options": ["再見", "哈囉", "謝謝", "請"] },
-            "apple": { "translation": "蘋果", "partOfSpeech": "名詞", "options": ["香蕉", "蘋果", "葡萄", "橘子"] }
-        };
-
         function getWordDetails() {
-            const word = document.getElementById("word").value.toLowerCase();
-            if (dictionaryAPI[word]) {
-                document.getElementById("translation").innerText = "翻譯: " + dictionaryAPI[word].translation;
-                document.getElementById("partOfSpeech").innerText = "詞性: " + dictionaryAPI[word].partOfSpeech;
-                loadTestOptions(word);
-            } else {
-                document.getElementById("translation").innerText = "抱歉，未找到該單字的翻譯。";
-                document.getElementById("partOfSpeech").innerText = "";
+    const word = document.getElementById("word").value.toLowerCase();
+    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Word not found");
             }
-        }
+            return response.json();
+        })
+        .then(data => {
+            // 顯示翻譯和詞性
+            const wordData = data[0];
+            const meanings = wordData.meanings;
+            const definition = meanings[0].definitions[0].definition;
+            const partOfSpeech = meanings[0].partOfSpeech;
 
-        function loadTestOptions(word) {
-            const options = dictionaryAPI[word].options;
-            const testOptionsDiv = document.getElementById("test-options");
-            testOptionsDiv.innerHTML = ""; // 清除之前的選項
+            document.getElementById("translation").innerText = "定義: " + definition;
+            document.getElementById("partOfSpeech").innerText = "詞性: " + partOfSpeech;
 
-            options.forEach(option => {
-                const button = document.createElement("button");
-                button.innerText = option;
-                button.onclick = function() { checkAnswer(option, word); };
-                testOptionsDiv.appendChild(button);
-            });
+            loadTestOptions(word, definition); // 更新測驗選項
+        })
+        .catch(error => {
+            document.getElementById("translation").innerText = "抱歉，未找到該單字的翻譯。";
+            document.getElementById("partOfSpeech").innerText = "";
+        });
+}
 
-            document.getElementById("test-container").style.display = "block";
-        }
+function loadTestOptions(word, correctDefinition) {
+    const testOptionsDiv = document.getElementById("test-options");
+    testOptionsDiv.innerHTML = ""; // 清除之前的選項
 
-        function checkAnswer(selectedOption, word) {
-            const correctAnswer = dictionaryAPI[word].translation;
-            const feedbackDiv = document.getElementById("feedback");
+    const options = generateTestOptions(correctDefinition); // 生成選擇題選項
+    options.forEach(option => {
+        const button = document.createElement("button");
+        button.innerText = option;
+        button.onclick = function() { checkAnswer(option, correctDefinition); };
+        testOptionsDiv.appendChild(button);
+    });
 
-            if (selectedOption === correctAnswer) {
-                feedbackDiv.innerText = "正確!";
-                feedbackDiv.style.color = "green";
-            } else {
-                feedbackDiv.innerText = "錯誤，正確答案是: " + correctAnswer;
-                feedbackDiv.style.color = "red";
-            }
-        }
+    document.getElementById("test-container").style.display = "block";
+}
+
+function generateTestOptions(correctDefinition) {
+    // 模擬生成其他隨機選項，這裡應該整合真實的隨機選項生成邏輯
+    const fakeOptions = [
+        "隨便的錯誤答案1", 
+        "隨便的錯誤答案2", 
+        "隨便的錯誤答案3"
+    ];
+    const options = [correctDefinition, ...fakeOptions];
+    return shuffleArray(options); // 隨機打亂選項
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function checkAnswer(selectedOption, correctDefinition) {
+    const feedbackDiv = document.getElementById("feedback");
+
+    if (selectedOption === correctDefinition) {
+        feedbackDiv.innerText = "正確!";
+        feedbackDiv.style.color = "green";
+    } else {
+        feedbackDiv.innerText = "錯誤，正確答案是: " + correctDefinition;
+        feedbackDiv.style.color = "red";
+    }
+}
     </script>
 
 </body>
