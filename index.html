@@ -105,32 +105,40 @@
     <script type="module">
         // Import Firebase and initialize
         import { initializeApp } from "firebase/app";
-        import { getAnalytics } from "firebase/analytics";
+        import { getDatabase, ref, push, onValue } from "firebase/database";
+
         const firebaseConfig = {
-          apiKey: "AIzaSyAAtYI_bYv56w6IqeLm9VFeCSWEjBM92cU",
+          apiKey: "YOUR_API_KEY",
           authDomain: "abchehe--brain.firebaseapp.com",
+          databaseURL: "https://abchehe--brain-default-rtdb.firebaseio.com",
           projectId: "abchehe--brain",
           storageBucket: "abchehe--brain.appspot.com",
-          messagingSenderId: "175459584044",
-          appId: "1:175459584044:web:e6d3d137a0987a1c992989",
-          measurementId: "G-QEK491PL1W"
+          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+          appId: "YOUR_APP_ID"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
+        const database = getDatabase(app);
+
     </script>
 
     <script>
-        // 你的其餘 JavaScript 代碼
-
+        // 新增單字到 Firebase
         function addWord() {
             const englishWord = document.getElementById('english-word').value;
             const chineseTranslation = document.getElementById('chinese-translation').value;
             const partOfSpeech = document.getElementById('part-of-speech').value;
 
             if (englishWord && chineseTranslation) {
-                // 將單字寫入 Firebase 資料庫
-                console.log('單字已添加：', englishWord, chineseTranslation, partOfSpeech);
+                const newWord = {
+                    english: englishWord,
+                    chinese: chineseTranslation,
+                    partOfSpeech: partOfSpeech
+                };
+
+                const dbRef = ref(database, 'words');
+                push(dbRef, newWord);
 
                 // 清除輸入框
                 document.getElementById('english-word').value = '';
@@ -142,24 +150,43 @@
 
         // 測驗功能
         function startQuiz() {
-            const quizContainer = document.getElementById('quiz-options');
-            quizContainer.innerHTML = ''; // 清除之前的選項
+            const dbRef = ref(database, 'words');
+            onValue(dbRef, (snapshot) => {
+                const wordList = [];
+                snapshot.forEach((childSnapshot) => {
+                    wordList.push(childSnapshot.val());
+                });
 
-            const randomWord = "cat";  // 這裡應該用 Firebase 讀取實際的資料
-            const correctAnswer = "貓";
-            const incorrectAnswers = ["狗", "馬"];
+                if (wordList.length < 3) {
+                    alert("單字庫中需要至少三個單字才能開始測驗！");
+                    return;
+                }
 
-            const options = shuffleArray([correctAnswer, ...incorrectAnswers]);
+                const quizContainer = document.getElementById('quiz-options');
+                quizContainer.innerHTML = ''; // 清除之前的選項
 
-            // 顯示測驗題目
-            document.getElementById('quiz-question').innerText = `請選擇正確的翻譯: ${randomWord}`;
+                // 隨機選擇一個測驗單字
+                const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
 
-            // 顯示測驗選項
-            options.forEach(option => {
-                const button = document.createElement('button');
-                button.innerText = option;
-                button.onclick = function() { checkAnswer(option, correctAnswer); };
-                quizContainer.appendChild(button);
+                // 隨機選擇三個中文選項，其中一個為正確答案
+                const correctAnswer = randomWord.chinese;
+                const incorrectAnswers = wordList
+                    .filter(word => word.chinese !== correctAnswer)
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 2);
+
+                const options = shuffleArray([correctAnswer, ...incorrectAnswers.map(word => word.chinese)]);
+
+                // 顯示測驗題目
+                document.getElementById('quiz-question').innerText = `請選擇正確的翻譯: ${randomWord.english}`;
+
+                // 顯示測驗選項
+                options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.innerText = option;
+                    button.onclick = function() { checkAnswer(option, correctAnswer); };
+                    quizContainer.appendChild(button);
+                });
             });
         }
 
@@ -171,6 +198,7 @@
             }
         }
 
+        // 隨機排列選項
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
