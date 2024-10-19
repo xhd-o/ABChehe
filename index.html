@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人單字庫</title>
+    <title>Firebase 測試</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,32 +22,6 @@
 
         h1 {
             text-align: center;
-        }
-
-        .word-input input {
-            width: calc(50% - 10px);
-            padding: 10px;
-            margin: 5px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .word-input button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .word-input button:hover {
-            background-color: #0056b3;
         }
 
         .quiz-container {
@@ -76,32 +50,23 @@
 <body>
 
     <div class="container">
-        <h1>個人單字庫</h1>
+        <h1>Firebase 測試</h1>
 
         <!-- 自我測驗區 -->
         <div class="quiz-container" id="quiz-container">
-            <h2>自我測驗</h2>
-            <p id="quiz-question">點擊下方開始測驗</p>
-            <button onclick="startQuiz()">開始測驗</button>
-            <div id="quiz-options"></div>
-        </div>
-
-        <!-- 單字輸入區 -->
-        <div class="word-input">
-            <input type="text" id="english-word" placeholder="輸入英文單字" required>
-            <input type="text" id="chinese-translation" placeholder="輸入中文翻譯" required>
-            <button onclick="addWord()">新增單字</button>
+            <h2>測試 Firebase 資料庫連接</h2>
+            <button onclick="testFirebase()">測試資料庫連接</button>
+            <p id="output"></p>
         </div>
     </div>
 
     <!-- Firebase SDK -->
     <script type="module">
-        // Import Firebase and initialize
         import { initializeApp } from "firebase/app";
-        import { getDatabase, ref, push, onValue } from "firebase/database";
+        import { getDatabase, ref, onValue } from "firebase/database";
         import { getAnalytics } from "firebase/analytics";
 
-        // Your web app's Firebase configuration
+        // Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyAAtYI_bYv56w6IqeLm9VFeCSWEjBM92cU",
             authDomain: "abchehe--brain.firebaseapp.com",
@@ -112,94 +77,25 @@
             measurementId: "G-QEK491PL1W"
         };
 
-        // Initialize Firebase
+        // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const database = getDatabase(app);
 
-    </script>
-
-    <script>
-        // 新增單字到 Firebase 資料庫
-        function addWord() {
-            const englishWord = document.getElementById('english-word').value;
-            const chineseTranslation = document.getElementById('chinese-translation').value;
-
-            if (englishWord && chineseTranslation) {
-                const newWord = {
-                    english: englishWord,
-                    chinese: chineseTranslation
-                };
-
-                const dbRef = ref(database, 'words');
-                push(dbRef, newWord);
-
-                // 清除輸入框
-                document.getElementById('english-word').value = '';
-                document.getElementById('chinese-translation').value = '';
-            } else {
-                alert("請輸入完整的單字和翻譯！");
-            }
-        }
-
-        // 自我測驗功能
-        function startQuiz() {
+        // 測試 Firebase 資料庫連接功能
+        function testFirebase() {
             const dbRef = ref(database, 'words');
             onValue(dbRef, (snapshot) => {
-                const wordList = [];
-                snapshot.forEach((childSnapshot) => {
-                    wordList.push(childSnapshot.val());
-                });
-
-                if (wordList.length < 3) {
-                    alert("單字庫中需要至少三個單字才能開始測驗！");
-                    return;
+                const outputElement = document.getElementById('output');
+                if (snapshot.exists()) {
+                    outputElement.innerHTML = "成功讀取資料: " + JSON.stringify(snapshot.val());
+                } else {
+                    outputElement.innerHTML = "資料庫中沒有資料";
                 }
-
-                const quizContainer = document.getElementById('quiz-options');
-                quizContainer.innerHTML = ''; // 清除之前的選項
-
-                // 隨機選擇一個測驗單字
-                const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
-
-                // 隨機選擇三個中文選項，其中一個為正確答案
-                const correctAnswer = randomWord.chinese;
-                const incorrectAnswers = wordList
-                    .filter(word => word.chinese !== correctAnswer)
-                    .sort(() => 0.5 - Math.random())
-                    .slice(0, 2);
-
-                const options = shuffleArray([correctAnswer, ...incorrectAnswers.map(word => word.chinese)]);
-
-                // 顯示測驗題目
-                document.getElementById('quiz-question').innerText = `請選擇正確的翻譯: ${randomWord.english}`;
-
-                // 顯示測驗選項
-                options.forEach(option => {
-                    const button = document.createElement('button');
-                    button.innerText = option;
-                    button.onclick = function() { checkAnswer(option, correctAnswer); };
-                    quizContainer.appendChild(button);
-                });
+            }, (error) => {
+                const outputElement = document.getElementById('output');
+                outputElement.innerHTML = "資料讀取錯誤: " + error.message;
             });
-        }
-
-        // 檢查答案是否正確
-        function checkAnswer(selectedOption, correctAnswer) {
-            if (selectedOption === correctAnswer) {
-                alert("正確！");
-            } else {
-                alert(`錯誤，正確答案是: ${correctAnswer}`);
-            }
-        }
-
-        // 隨機排列選項
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
         }
     </script>
 
