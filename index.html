@@ -78,21 +78,28 @@
         };
 
         // 初始化 Firebase
+        console.log("初始化 Firebase...");
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const database = getDatabase(app);
+        console.log("Firebase 初始化完成。");
 
         // 測試 Firebase 資料庫連接功能
         function testFirebase() {
+            console.log("開始測試資料庫連接...");
             const dbRef = ref(database, 'words');
             onValue(dbRef, (snapshot) => {
+                console.log("成功讀取資料庫回應。");
                 const outputElement = document.getElementById('output');
                 if (snapshot.exists()) {
+                    console.log("成功讀取到資料: ", snapshot.val());
                     outputElement.innerHTML = "成功讀取資料: " + JSON.stringify(snapshot.val());
                 } else {
+                    console.log("資料庫中沒有資料。");
                     outputElement.innerHTML = "資料庫中沒有資料";
                 }
             }, (error) => {
+                console.error("資料讀取錯誤: ", error.message);
                 const outputElement = document.getElementById('output');
                 outputElement.innerHTML = "資料讀取錯誤: " + error.message;
             });
