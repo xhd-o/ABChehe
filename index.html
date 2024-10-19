@@ -78,7 +78,7 @@
     <div class="container">
         <h1>個人單字庫</h1>
 
-        <!-- 測驗區塊 -->
+        <!-- 自我測驗區 -->
         <div class="quiz-container" id="quiz-container">
             <h2>自我測驗</h2>
             <p id="quiz-question">點擊下方開始測驗</p>
@@ -90,15 +90,8 @@
         <div class="word-input">
             <input type="text" id="english-word" placeholder="輸入英文單字" required>
             <input type="text" id="chinese-translation" placeholder="輸入中文翻譯" required>
-            <select id="part-of-speech">
-                <option value="noun">名詞</option>
-                <option value="verb">動詞</option>
-                <option value="adjective">形容詞</option>
-                <option value="adverb">副詞</option>
-            </select>
             <button onclick="addWord()">新增單字</button>
         </div>
-
     </div>
 
     <!-- Firebase SDK -->
@@ -108,33 +101,27 @@
         import { getDatabase, ref, push, onValue } from "firebase/database";
 
         const firebaseConfig = {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "abchehe--brain.firebaseapp.com",
-          databaseURL: "https://abchehe--brain-default-rtdb.firebaseio.com",
-          projectId: "abchehe--brain",
-          storageBucket: "abchehe--brain.appspot.com",
-          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-          appId: "YOUR_APP_ID"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-    </script>
-
-    <script>
-        // 新增單字到 Firebase
+        // 新增單字到 Firebase 資料庫
         function addWord() {
             const englishWord = document.getElementById('english-word').value;
             const chineseTranslation = document.getElementById('chinese-translation').value;
-            const partOfSpeech = document.getElementById('part-of-speech').value;
 
             if (englishWord && chineseTranslation) {
                 const newWord = {
                     english: englishWord,
-                    chinese: chineseTranslation,
-                    partOfSpeech: partOfSpeech
+                    chinese: chineseTranslation
                 };
 
                 const dbRef = ref(database, 'words');
@@ -148,7 +135,7 @@
             }
         }
 
-        // 測驗功能
+        // 自我測驗功能
         function startQuiz() {
             const dbRef = ref(database, 'words');
             onValue(dbRef, (snapshot) => {
@@ -190,6 +177,7 @@
             });
         }
 
+        // 檢查答案是否正確
         function checkAnswer(selectedOption, correctAnswer) {
             if (selectedOption === correctAnswer) {
                 alert("正確！");
